@@ -56,8 +56,18 @@
 						"referenceName": "fall2026_parquet_DS",
 						"type": "DatasetReference",
 						"parameters": {
-							"container_name": "raw",
-							"folder_name": "spl_parquet"
+							"container_name": {
+								"value": "@pipeline().parameters.target_container_name",
+								"type": "Expression"
+							},
+							"folder_name": {
+								"value": "@pipeline().parameters.target_folder_name",
+								"type": "Expression"
+							},
+							"file_name": {
+								"value": "@concat(\r\n    'spl_fall2026_',\r\n    utcNow()\r\n)",
+								"type": "Expression"
+							}
 						}
 					}
 				]
