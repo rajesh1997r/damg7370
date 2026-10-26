@@ -35,16 +35,48 @@
 							"type": "ParquetWriteSettings"
 						}
 					},
-					"enableStaging": false
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
 				},
+				"inputs": [
+					{
+						"referenceName": "csv_file_ds",
+						"type": "DatasetReference"
+					}
+				],
 				"outputs": [
 					{
 						"referenceName": "fall2026_parquet_DS",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"container_name": "raw",
+							"folder_name": "spl_parquet"
+						}
 					}
 				]
 			}
 		],
+		"parameters": {
+			"target_container_name": {
+				"type": "string"
+			},
+			"source_container_name": {
+				"type": "string"
+			},
+			"target_folder_name": {
+				"type": "string"
+			},
+			"source_folder_name": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
