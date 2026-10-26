@@ -1,0 +1,96 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "dadabifall2026datafactory"
+		},
+		"SqlDatabase_Linked_Service_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SqlDatabase_Linked_Service'"
+		},
+		"Storage_linked_service_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'Storage_linked_service'"
+		},
+		"KeyVault_Linked_service_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://dadabifall2026keyvault.vault.azure.net/"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "dadabifall2026sqlserver.database.windows.net"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "dadabi2026sqldatabase"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "rajesh1997r"
+		},
+		"Storage_linked_service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dadabifall2026storageacc.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/KeyVault_Linked_service')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('KeyVault_Linked_service_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlDatabase_Linked_Service')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('SqlDatabase_Linked_Service_properties_typeProperties_server')]",
+					"database": "[parameters('SqlDatabase_Linked_Service_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('SqlDatabase_Linked_Service_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('SqlDatabase_Linked_Service_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Storage_linked_service')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('Storage_linked_service_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('Storage_linked_service_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

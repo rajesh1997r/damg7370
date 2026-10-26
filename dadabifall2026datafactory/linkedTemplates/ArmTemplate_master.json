@@ -1,0 +1,91 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "dadabifall2026datafactory"
+		},
+		"SqlDatabase_Linked_Service_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SqlDatabase_Linked_Service'"
+		},
+		"Storage_linked_service_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'Storage_linked_service'"
+		},
+		"KeyVault_Linked_service_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://dadabifall2026keyvault.vault.azure.net/"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "dadabifall2026sqlserver.database.windows.net"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "dadabi2026sqldatabase"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "rajesh1997r"
+		},
+		"Storage_linked_service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dadabifall2026storageacc.dfs.core.windows.net/"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "dadabifall2026datafactory_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"SqlDatabase_Linked_Service_password": {
+						"value": "[parameters('SqlDatabase_Linked_Service_password')]"
+					},
+					"Storage_linked_service_accountKey": {
+						"value": "[parameters('Storage_linked_service_accountKey')]"
+					},
+					"KeyVault_Linked_service_properties_typeProperties_baseUrl": {
+						"value": "[parameters('KeyVault_Linked_service_properties_typeProperties_baseUrl')]"
+					},
+					"SqlDatabase_Linked_Service_properties_typeProperties_server": {
+						"value": "[parameters('SqlDatabase_Linked_Service_properties_typeProperties_server')]"
+					},
+					"SqlDatabase_Linked_Service_properties_typeProperties_database": {
+						"value": "[parameters('SqlDatabase_Linked_Service_properties_typeProperties_database')]"
+					},
+					"SqlDatabase_Linked_Service_properties_typeProperties_userName": {
+						"value": "[parameters('SqlDatabase_Linked_Service_properties_typeProperties_userName')]"
+					},
+					"Storage_linked_service_properties_typeProperties_url": {
+						"value": "[parameters('Storage_linked_service_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

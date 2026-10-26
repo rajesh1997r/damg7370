@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "dadabifall2026datafactory"
+		},
+		"SqlDatabase_Linked_Service_password": {
+			"value": ""
+		},
+		"Storage_linked_service_accountKey": {
+			"value": ""
+		},
+		"KeyVault_Linked_service_properties_typeProperties_baseUrl": {
+			"value": "https://dadabifall2026keyvault.vault.azure.net/"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_server": {
+			"value": "dadabifall2026sqlserver.database.windows.net"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_database": {
+			"value": "dadabi2026sqldatabase"
+		},
+		"SqlDatabase_Linked_Service_properties_typeProperties_userName": {
+			"value": "rajesh1997r"
+		},
+		"Storage_linked_service_properties_typeProperties_url": {
+			"value": "https://dadabifall2026storageacc.dfs.core.windows.net/"
+		}
+	}
+}
