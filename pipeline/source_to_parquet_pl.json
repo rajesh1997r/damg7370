@@ -48,7 +48,21 @@
 				"inputs": [
 					{
 						"referenceName": "csv_file_ds",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"container_name": {
+								"value": "@pipeline().parameters.source_container_name",
+								"type": "Expression"
+							},
+							"folder_name": {
+								"value": "@pipeline().parameters.source_folder_name",
+								"type": "Expression"
+							},
+							"file_name": {
+								"value": "@pipeline().parameters.source_file_name",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [
@@ -84,6 +98,9 @@
 				"type": "string"
 			},
 			"source_folder_name": {
+				"type": "string"
+			},
+			"source_file_name": {
 				"type": "string"
 			}
 		},
