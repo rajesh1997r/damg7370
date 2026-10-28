@@ -37,6 +37,39 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "Execute_convert_to_parquet",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Set_filename",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "source_to_parquet_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"target_container_name": "raw",
+									"source_container_name": "source-files",
+									"target_folder_name": "spl",
+									"source_folder_name": "seattle_pet_licence",
+									"source_file_name": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
 						}
 					]
 				}
