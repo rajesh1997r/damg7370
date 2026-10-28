@@ -41,6 +41,282 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/source_to_parquet_pl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "csv_to_parquet",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 1,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "License Issue Date",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "License_Issue_Date",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "License Number",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "License_Number",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "Animal's Name",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Animal_Name",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "Species",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Species",
+											"type": "String",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "Primary Breed",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Primary_Breed",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "Secondary Breed",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Secondary_Breed",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "ZIP Code",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "ZIP_Code",
+											"physicalType": "UTF8"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "csv_file_ds",
+								"type": "DatasetReference",
+								"parameters": {
+									"container_name": {
+										"value": "@pipeline().parameters.source_container_name",
+										"type": "Expression"
+									},
+									"folder_name": {
+										"value": "@pipeline().parameters.source_folder_name",
+										"type": "Expression"
+									},
+									"file_name": {
+										"value": "@pipeline().parameters.source_file_name",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "fall2026_parquet_DS",
+								"type": "DatasetReference",
+								"parameters": {
+									"container_name": {
+										"value": "@pipeline().parameters.target_container_name",
+										"type": "Expression"
+									},
+									"folder_name": {
+										"value": "@pipeline().parameters.target_folder_name",
+										"type": "Expression"
+									},
+									"file_name": {
+										"value": "@concat(\r\n    'spl_fall2026_',\r\n    utcNow()\r\n)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"target_container_name": {
+						"type": "string"
+					},
+					"source_container_name": {
+						"type": "string"
+					},
+					"target_folder_name": {
+						"type": "string"
+					},
+					"source_folder_name": {
+						"type": "string"
+					},
+					"source_file_name": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/csv_file_ds')]",
+				"[concat(variables('factoryId'), '/datasets/fall2026_parquet_DS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/csv_file_ds')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Storage_linked_service",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container_name": {
+						"type": "string"
+					},
+					"folder_name": {
+						"type": "string"
+					},
+					"file_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().file_name",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().folder_name",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().container_name",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "License Issue Date",
+						"type": "String"
+					},
+					{
+						"name": "License Number",
+						"type": "String"
+					},
+					{
+						"name": "Animal's Name",
+						"type": "String"
+					},
+					{
+						"name": "Species",
+						"type": "String"
+					},
+					{
+						"name": "Primary Breed",
+						"type": "String"
+					},
+					{
+						"name": "Secondary Breed",
+						"type": "String"
+					},
+					{
+						"name": "ZIP Code",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Storage_linked_service')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/fall2026_parquet_DS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -49,11 +325,36 @@
 					"referenceName": "Storage_linked_service",
 					"type": "LinkedServiceReference"
 				},
+				"parameters": {
+					"container_name": {
+						"type": "string",
+						"defaultValue": "raw"
+					},
+					"folder_name": {
+						"type": "string",
+						"defaultValue": "spl_parquet"
+					},
+					"file_name": {
+						"type": "string"
+					}
+				},
 				"annotations": [],
 				"type": "Parquet",
 				"typeProperties": {
 					"location": {
-						"type": "AzureBlobFSLocation"
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().file_name",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().folder_name",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().container_name",
+							"type": "Expression"
+						}
 					},
 					"compressionCodec": "snappy"
 				},
@@ -114,6 +415,143 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/spl_master_pl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEachSPL_File",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get_Source_Files_List",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.files_list",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Set_filename",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "filename",
+										"value": {
+											"value": "@item()",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Execute_convert_to_parquet",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Set_filename",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "source_to_parquet_pl",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"target_container_name": "raw",
+											"source_container_name": "source-files",
+											"target_folder_name": "spl",
+											"source_folder_name": "seattle_pet_licence",
+											"source_file_name": {
+												"value": "@item()",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Get_Source_Files_List",
+						"type": "GetMetadata",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "csv_file_ds",
+								"type": "DatasetReference",
+								"parameters": {
+									"container_name": "source-files",
+									"folder_name": "seattle_pet_license"
+								}
+							},
+							"fieldList": [],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"files_list": {
+						"type": "array",
+						"defaultValue": [
+							"Seattle_Pet_Licenses_20260915.csv",
+							"Seattle_Pet_Licenses_20261001.csv",
+							"Seattle_Pet_Licenses_20261015.csv"
+						]
+					}
+				},
+				"variables": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/csv_file_ds')]",
+				"[concat(variables('factoryId'), '/pipelines/source_to_parquet_pl')]"
+			]
 		}
 	]
 }
