@@ -112,9 +112,9 @@
 			"files_list": {
 				"type": "array",
 				"defaultValue": [
-					"a",
-					"b",
-					"c"
+					"Seattle_Pet_Licenses_20260915.csv",
+					"Seattle_Pet_Licenses_20261001.csv",
+					"Seattle_Pet_Licenses_20261015.csv"
 				]
 			}
 		},
