@@ -60,10 +60,10 @@
 								},
 								"waitOnCompletion": true,
 								"parameters": {
-									"target_container_name": "raw",
-									"source_container_name": "source-files",
-									"target_folder_name": "spl",
-									"source_folder_name": "seattle_pet_licence",
+									"target_container_name": "@pipeline().parameters.target_container_name",
+									"source_container_name": "@pipeline().parameters.source_container_name",
+									"target_folder_name": "@pipeline().parameters.target_folder_name",
+									"source_folder_name": "@pipeline().parameters.source_folder_name",
 									"source_file_name": {
 										"value": "@item()",
 										"type": "Expression"
