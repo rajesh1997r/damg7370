@@ -33,7 +33,7 @@
 							"typeProperties": {
 								"variableName": "filename",
 								"value": {
-									"value": "@item()",
+									"value": "@item().name",
 									"type": "Expression"
 								}
 							}
@@ -65,7 +65,7 @@
 									"target_folder_name": "@pipeline().parameters.target_folder_name",
 									"source_folder_name": "@pipeline().parameters.source_folder_name",
 									"source_file_name": {
-										"value": "@item()",
+										"value": "@item().name",
 										"type": "Expression"
 									}
 								}
