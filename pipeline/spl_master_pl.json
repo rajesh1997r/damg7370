@@ -92,7 +92,8 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"container_name": "@pipeline().parameters.source_container_name",
-							"folder_name": "@pipeline().parameters.source_folder_name"
+							"folder_name": "@pipeline().parameters.source_folder_name",
+							"file_name": "@''"
 						}
 					},
 					"fieldList": [
