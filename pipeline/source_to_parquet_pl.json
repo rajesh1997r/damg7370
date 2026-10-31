@@ -166,7 +166,7 @@
 								"type": "Expression"
 							},
 							"file_name": {
-								"value": "@concat(\r\n    'spl_fall2026_',\r\n    utcNow()\r\n)",
+								"value": "@concat('spl_fall2026_', substring(variables('file_date'),0,4), '_', substring(variables('file_date'),4,2), '_', substring(variables('file_date'),6,2), '.parquet')",
 								"type": "Expression"
 							}
 						}
