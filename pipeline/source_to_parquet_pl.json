@@ -5,7 +5,14 @@
 			{
 				"name": "csv_to_parquet",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set_file_date",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.00:10:00",
 					"retry": 1,
@@ -165,6 +172,23 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "Set_file_date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "file_date",
+					"value": {
+						"value": "@replace(last(split(pipeline().parameters.source_file_name, '_')), '.csv', '')",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -182,6 +206,11 @@
 			},
 			"source_file_name": {
 				"type": "string"
+			}
+		},
+		"variables": {
+			"file_date": {
+				"type": "String"
 			}
 		},
 		"annotations": []
