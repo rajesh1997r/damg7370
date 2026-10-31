@@ -112,11 +112,23 @@
 		"parameters": {
 			"files_list": {
 				"type": "array",
-				"defaultValue": [
-					"Seattle_Pet_Licenses_20260915.csv",
-					"Seattle_Pet_Licenses_20261001.csv",
-					"Seattle_Pet_Licenses_20261015.csv"
-				]
+				"defaultValue": "\"Seattle_Pet_Licenses_20260915.csv\",\"Seattle_Pet_Licenses_20261001.csv\",\"Seattle_Pet_Licenses_20261015.csv\""
+			},
+			"source_container_name": {
+				"type": "string",
+				"defaultValue": "source-files"
+			},
+			"source_folder_name": {
+				"type": "string",
+				"defaultValue": "seattle_pet_licence"
+			},
+			"target_container_name": {
+				"type": "string",
+				"defaultValue": "raw"
+			},
+			"target_folder_name": {
+				"type": "string",
+				"defaultValue": "spl"
 			}
 		},
 		"variables": {
