@@ -45,7 +45,7 @@
 								{
 									"activity": "Set_filename",
 									"dependencyConditions": [
-										"Completed"
+										"Succeeded"
 									]
 								}
 							],
@@ -60,14 +60,56 @@
 								},
 								"waitOnCompletion": true,
 								"parameters": {
-									"target_container_name": "@pipeline().parameters.target_container_name",
-									"source_container_name": "@pipeline().parameters.source_container_name",
-									"target_folder_name": "@pipeline().parameters.target_folder_name",
-									"source_folder_name": "@pipeline().parameters.source_folder_name",
+									"target_container_name": {
+										"value": "@pipeline().parameters.target_container_name",
+										"type": "Expression"
+									},
+									"source_container_name": {
+										"value": "@pipeline().parameters.source_container_name",
+										"type": "Expression"
+									},
+									"target_folder_name": {
+										"value": "@pipeline().parameters.target_folder_name",
+										"type": "Expression"
+									},
+									"source_folder_name": {
+										"value": "@pipeline().parameters.source_folder_name",
+										"type": "Expression"
+									},
 									"source_file_name": {
 										"value": "@item().name",
 										"type": "Expression"
 									}
+								}
+							}
+						},
+						{
+							"name": "Execute_load_to_sql",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute_convert_to_parquet",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "source_to_sql_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"source_container_name": "@pipeline().parameters.source_container_name",
+									"source_folder_name": "@pipeline().parameters.source_folder_name",
+									"source_file_name": "@item().name",
+									"target_schema_name": "@pipeline().parameters.target_schema_name",
+									"target_table_name": "@pipeline().parameters.target_table_name"
 								}
 							}
 						}
@@ -134,6 +176,14 @@
 			"target_folder_name": {
 				"type": "string",
 				"defaultValue": "spl"
+			},
+			"target_schema_name": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"target_table_name": {
+				"type": "string",
+				"defaultValue": "seattle_pet_licenses"
 			}
 		},
 		"variables": {
