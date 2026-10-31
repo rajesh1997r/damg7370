@@ -1,0 +1,26 @@
+{
+	"name": "sql_table_ds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlDatabase_Linked_Service",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "seattle_pet_licenses"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "@dataset().schema_name",
+			"table": "@dataset().table_name"
+		}
+	}
+}
