@@ -9,14 +9,14 @@
 					{
 						"activity": "Get_Source_Files_List",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
 						]
 					}
 				],
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@pipeline().parameters.files_list",
+						"value": "@activity('Get_Source_Files_List').output.childItems",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -77,8 +77,6 @@
 			{
 				"name": "Get_Source_Files_List",
 				"type": "GetMetadata",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -93,11 +91,13 @@
 						"referenceName": "csv_file_ds",
 						"type": "DatasetReference",
 						"parameters": {
-							"container_name": "source-files",
-							"folder_name": "seattle_pet_license"
+							"container_name": "@pipeline().parameters.source_container_name",
+							"folder_name": "@pipeline().parameters.source_folder_name"
 						}
 					},
-					"fieldList": [],
+					"fieldList": [
+						"childItems"
+					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
 						"recursive": true,
