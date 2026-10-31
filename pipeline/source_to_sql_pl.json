@@ -1,0 +1,177 @@
+{
+	"name": "source_to_sql_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "csv_to_sql",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "License Issue Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "License_Issue_Date",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "License Number",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "License_Number",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "Animal's Name",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Animal_Name",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "Species",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Species",
+									"type": "String",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "Primary Breed",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Primary_Breed",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "Secondary Breed",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Secondary_Breed",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP Code",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ZIP_Code",
+									"physicalType": "UTF8"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "csv_file_ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"container_name": {
+								"value": "@pipeline().parameters.source_container_name",
+								"type": "Expression"
+							},
+							"folder_name": {
+								"value": "@pipeline().parameters.source_folder_name",
+								"type": "Expression"
+							},
+							"file_name": {
+								"value": "@pipeline().parameters.source_file_name",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "sql_table_ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema_name": "@pipeline().parameters.target_schema_name",
+							"table_name": "@pipeline().parameters.target_table_name"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"source_container_name": {
+				"type": "string"
+			},
+			"source_folder_name": {
+				"type": "string"
+			},
+			"source_file_name": {
+				"type": "string"
+			},
+			"target_schema_name": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"target_table_name": {
+				"type": "string",
+				"defaultValue": "seattle_pet_licenses"
+			}
+		},
+		"annotations": []
+	}
+}
