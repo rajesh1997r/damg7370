@@ -7,10 +7,6 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "dadabifall2026datafactory"
 		},
-		"SqlDatabase_Linked_Service_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'SqlDatabase_Linked_Service'"
-		},
 		"Storage_linked_service_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'Storage_linked_service'"
@@ -49,7 +45,14 @@
 					{
 						"name": "csv_to_parquet",
 						"type": "Copy",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Set_file_date",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "0.00:10:00",
 							"retry": 1,
@@ -203,12 +206,29 @@
 										"type": "Expression"
 									},
 									"file_name": {
-										"value": "@concat(\r\n    'spl_fall2026_',\r\n    utcNow()\r\n)",
+										"value": "@concat('spl_fall2026_', substring(variables('file_date'),0,4), '_', substring(variables('file_date'),4,2), '_', substring(variables('file_date'),6,2), '.parquet')",
 										"type": "Expression"
 									}
 								}
 							}
 						]
+					},
+					{
+						"name": "Set_file_date",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "file_date",
+							"value": {
+								"value": "@replace(last(split(pipeline().parameters.source_file_name, '_')), '.csv', '')",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"policy": {
@@ -231,11 +251,222 @@
 						"type": "string"
 					}
 				},
+				"variables": {
+					"file_date": {
+						"type": "String"
+					}
+				},
 				"annotations": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/csv_file_ds')]",
 				"[concat(variables('factoryId'), '/datasets/fall2026_parquet_DS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/spl_master_pl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEachSPL_File",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get_Source_Files_List",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get_Source_Files_List').output.childItems",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Set_filename",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "filename",
+										"value": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Execute_convert_to_parquet",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Set_filename",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "source_to_parquet_pl",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"target_container_name": {
+												"value": "@pipeline().parameters.target_container_name",
+												"type": "Expression"
+											},
+											"source_container_name": {
+												"value": "@pipeline().parameters.source_container_name",
+												"type": "Expression"
+											},
+											"target_folder_name": {
+												"value": "@pipeline().parameters.target_folder_name",
+												"type": "Expression"
+											},
+											"source_folder_name": {
+												"value": "@pipeline().parameters.source_folder_name",
+												"type": "Expression"
+											},
+											"source_file_name": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Execute_load_to_sql",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Execute_convert_to_parquet",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "source_to_sql_pl",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"source_container_name": "@pipeline().parameters.source_container_name",
+											"source_folder_name": "@pipeline().parameters.source_folder_name",
+											"source_file_name": "@item().name",
+											"target_schema_name": "@pipeline().parameters.target_schema_name",
+											"target_table_name": "@pipeline().parameters.target_table_name"
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Get_Source_Files_List",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "csv_file_ds",
+								"type": "DatasetReference",
+								"parameters": {
+									"container_name": "@pipeline().parameters.source_container_name",
+									"folder_name": "@pipeline().parameters.source_folder_name",
+									"file_name": "@''"
+								}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"files_list": {
+						"type": "array",
+						"defaultValue": [
+							"Seattle_Pet_Licenses_20260915.csv",
+							"Seattle_Pet_Licenses_20261001.csv",
+							"Seattle_Pet_Licenses_20261015.csv"
+						]
+					},
+					"source_container_name": {
+						"type": "string",
+						"defaultValue": "source-files"
+					},
+					"source_folder_name": {
+						"type": "string",
+						"defaultValue": "seattle_pet_licence"
+					},
+					"target_container_name": {
+						"type": "string",
+						"defaultValue": "raw"
+					},
+					"target_folder_name": {
+						"type": "string",
+						"defaultValue": "spl"
+					},
+					"target_schema_name": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"target_table_name": {
+						"type": "string",
+						"defaultValue": "seattle_pet_licenses"
+					}
+				},
+				"variables": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/csv_file_ds')]",
+				"[concat(variables('factoryId'), '/pipelines/source_to_parquet_pl')]",
+				"[concat(variables('factoryId'), '/pipelines/source_to_sql_pl')]"
 			]
 		},
 		{
@@ -365,6 +596,43 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/sql_table_ds')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SqlDatabase_Linked_Service",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"schema_name": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"table_name": {
+						"type": "string",
+						"defaultValue": "seattle_pet_licenses"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema_name",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().table_name",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SqlDatabase_Linked_Service')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/KeyVault_Linked_service')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -392,12 +660,18 @@
 					"authenticationType": "SQL",
 					"userName": "[parameters('SqlDatabase_Linked_Service_properties_typeProperties_userName')]",
 					"password": {
-						"type": "SecureString",
-						"value": "[parameters('SqlDatabase_Linked_Service_password')]"
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "KeyVault_Linked_service",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "sql-admin-password"
 					}
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/KeyVault_Linked_service')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/Storage_linked_service')]",
@@ -417,140 +691,189 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/spl_master_pl')]",
+			"name": "[concat(parameters('factoryName'), '/source_to_sql_pl')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "ForEachSPL_File",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get_Source_Files_List",
-								"dependencyConditions": [
-									"Completed"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@pipeline().parameters.files_list",
-								"type": "Expression"
-							},
-							"isSequential": true,
-							"activities": [
-								{
-									"name": "Set_filename",
-									"type": "SetVariable",
-									"dependsOn": [],
-									"policy": {
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "filename",
-										"value": {
-											"value": "@item()",
-											"type": "Expression"
-										}
-									}
-								},
-								{
-									"name": "Execute_convert_to_parquet",
-									"type": "ExecutePipeline",
-									"dependsOn": [
-										{
-											"activity": "Set_filename",
-											"dependencyConditions": [
-												"Completed"
-											]
-										}
-									],
-									"policy": {
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "source_to_parquet_pl",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"target_container_name": "raw",
-											"source_container_name": "source-files",
-											"target_folder_name": "spl",
-											"source_folder_name": "seattle_pet_licence",
-											"source_file_name": {
-												"value": "@item()",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Get_Source_Files_List",
-						"type": "GetMetadata",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
+						"name": "csv_to_sql",
+						"type": "Copy",
 						"dependsOn": [],
 						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
+							"timeout": "0.00:10:00",
+							"retry": 1,
+							"retryIntervalInSeconds": 60,
 							"secureOutput": false,
 							"secureInput": false
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"dataset": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "License Issue Date",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "License_Issue_Date",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "License Number",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "License_Number",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "Animal's Name",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Animal_Name",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "Species",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Species",
+											"type": "String",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "Primary Breed",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Primary_Breed",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "Secondary Breed",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "Secondary_Breed",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "ZIP Code",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "ZIP_Code",
+											"physicalType": "UTF8"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
 								"referenceName": "csv_file_ds",
 								"type": "DatasetReference",
 								"parameters": {
-									"container_name": "source-files",
-									"folder_name": "seattle_pet_license"
+									"container_name": {
+										"value": "@pipeline().parameters.source_container_name",
+										"type": "Expression"
+									},
+									"folder_name": {
+										"value": "@pipeline().parameters.source_folder_name",
+										"type": "Expression"
+									},
+									"file_name": {
+										"value": "@pipeline().parameters.source_file_name",
+										"type": "Expression"
+									}
 								}
-							},
-							"fieldList": [],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
 							}
-						}
+						],
+						"outputs": [
+							{
+								"referenceName": "sql_table_ds",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema_name": "@pipeline().parameters.target_schema_name",
+									"table_name": "@pipeline().parameters.target_table_name"
+								}
+							}
+						]
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
 				"parameters": {
-					"files_list": {
-						"type": "array",
-						"defaultValue": [
-							"Seattle_Pet_Licenses_20260915.csv",
-							"Seattle_Pet_Licenses_20261001.csv",
-							"Seattle_Pet_Licenses_20261015.csv"
-						]
-					}
-				},
-				"variables": {
-					"filename": {
-						"type": "String"
+					"source_container_name": {
+						"type": "string"
+					},
+					"source_folder_name": {
+						"type": "string"
+					},
+					"source_file_name": {
+						"type": "string"
+					},
+					"target_schema_name": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"target_table_name": {
+						"type": "string",
+						"defaultValue": "seattle_pet_licenses"
 					}
 				},
 				"annotations": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/csv_file_ds')]",
-				"[concat(variables('factoryId'), '/pipelines/source_to_parquet_pl')]"
+				"[concat(variables('factoryId'), '/datasets/sql_table_ds')]"
 			]
 		}
 	]

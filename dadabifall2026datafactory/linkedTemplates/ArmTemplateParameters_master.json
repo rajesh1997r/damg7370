@@ -5,9 +5,6 @@
 		"factoryName": {
 			"value": "dadabifall2026datafactory"
 		},
-		"SqlDatabase_Linked_Service_password": {
-			"value": ""
-		},
 		"Storage_linked_service_accountKey": {
 			"value": ""
 		},
